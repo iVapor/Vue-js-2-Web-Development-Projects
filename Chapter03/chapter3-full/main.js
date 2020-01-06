@@ -1,10 +1,10 @@
 // View
 new Vue({
-  name: 'game',
+    name: 'game',
 
-  el: '#app',
+    el: '#app',
 
-  template: `<div id="#app" :class="cssClass">
+    template: `<div id="#app" :class="cssClass">
     <top-bar :turn="turn" :current-player-index="currentPlayerIndex" :players="players" />
 
     <div class="world">
@@ -30,140 +30,140 @@ new Vue({
     </transition>
   </div>`,
 
-  data: state,
+    data: state,
 
-  computed: {
-    cssClass () {
-      return {
-        'can-play': this.canPlay,
-      }
-    },
-  },
-
-  methods: {
-    handlePlayCard (card) {
-      playCard(card)
+    computed: {
+        cssClass() {
+            return {
+                'can-play': this.canPlay,
+            }
+        },
     },
 
-    handleCardLeaveEnd () {
-      applyCard()
+    methods: {
+        handlePlayCard(card) {
+            playCard(card)
+        },
+
+        handleCardLeaveEnd() {
+            applyCard()
+        },
+
+        handleOverlayClose() {
+            overlayCloseHandlers[this.activeOverlay]()
+        },
     },
 
-    handleOverlayClose () {
-      overlayCloseHandlers[this.activeOverlay]()
+    mounted() {
+        beginGame()
     },
-  },
-
-  mounted () {
-    beginGame()
-  },
 })
 
 var overlayCloseHandlers = {
-  'player-turn' () {
-    if (state.turn > 1) {
-      state.activeOverlay = 'last-play'
-    } else {
-      newTurn()
-    }
-  },
+    'player-turn'() {
+        if (state.turn > 1) {
+            state.activeOverlay = 'last-play'
+        } else {
+            newTurn()
+        }
+    },
 
-  'last-play' () {
-    newTurn()
-  },
+    'last-play'() {
+        newTurn()
+    },
 
-  'game-over' () {
-    document.location.reload()
-  },
+    'game-over'() {
+        document.location.reload()
+    },
 }
 
 // Window resize handling
 window.addEventListener('resize', () => {
-  state.worldRatio = getWorldRatio()
+    state.worldRatio = getWorldRatio()
 })
 
 // Tween.js
 requestAnimationFrame(animate);
 
 function animate(time) {
-  requestAnimationFrame(animate);
-  TWEEN.update(time);
+    requestAnimationFrame(animate);
+    TWEEN.update(time);
 }
 
 // Gameplay
 
 state.activeOverlay = 'player-turn'
 
-function beginGame () {
-  state.players.forEach(drawInitialHand)
+function beginGame() {
+    state.players.forEach(drawInitialHand)
 }
 
-function playCard (card) {
-  if (state.canPlay) {
-    state.canPlay = false
-    currentPlayingCard = card
+function playCard(card) {
+    if (state.canPlay) {
+        state.canPlay = false
+        currentPlayingCard = card
 
-    // Remove the card from player hand
-    const index = state.currentPlayer.hand.indexOf(card)
-    state.currentPlayer.hand.splice(index, 1)
+        // Remove the card from player hand
+        const index = state.currentPlayer.hand.indexOf(card)
+        state.currentPlayer.hand.splice(index, 1)
 
-    // Add the card to the discard pile
-    addCardToPile(state.discardPile, card.id)
-  }
-}
-
-function applyCard () {
-  const card = currentPlayingCard
-
-  applyCardEffect(card)
-
-  // Wait a bit for the player to see what's going on
-  setTimeout(() => {
-    // Check if the players are dead
-    state.players.forEach(checkPlayerLost)
-
-    if (isOnePlayerDead()) {
-      endGame()
-    } else {
-      nextTurn()
+        // Add the card to the discard pile
+        addCardToPile(state.discardPile, card.id)
     }
-  }, 700)
 }
 
-function nextTurn () {
-  state.turn ++
-  state.currentPlayerIndex = state.currentOpponentId
-  state.activeOverlay = 'player-turn'
-}
+function applyCard() {
+    const card = currentPlayingCard
 
-function newTurn () {
-  state.activeOverlay = null
-  if (state.currentPlayer.skipTurn) {
-    skipTurn()
-  } else {
-    startTurn()
-  }
-}
+    applyCardEffect(card)
 
-function skipTurn () {
-  state.currentPlayer.skippedTurn = true
-  state.currentPlayer.skipTurn = false
-  nextTurn()
-}
-
-function startTurn () {
-  state.currentPlayer.skippedTurn = false
-  if (state.turn > 2) {
-    // Draw new card
+    // Wait a bit for the player to see what's going on
     setTimeout(() => {
-      state.currentPlayer.hand.push(drawCard())
-      state.canPlay = true
-    }, 800)
-  } else {
-    state.canPlay = true
-  }
+        // Check if the players are dead
+        state.players.forEach(checkPlayerLost)
+
+        if (isOnePlayerDead()) {
+            endGame()
+        } else {
+            nextTurn()
+        }
+    }, 700)
 }
 
-function endGame () {
-  state.activeOverlay = 'game-over'
+function nextTurn() {
+    state.turn++
+    state.currentPlayerIndex = state.currentOpponentId
+    state.activeOverlay = 'player-turn'
+}
+
+function newTurn() {
+    state.activeOverlay = null
+    if (state.currentPlayer.skipTurn) {
+        skipTurn()
+    } else {
+        startTurn()
+    }
+}
+
+function skipTurn() {
+    state.currentPlayer.skippedTurn = true
+    state.currentPlayer.skipTurn = false
+    nextTurn()
+}
+
+function startTurn() {
+    state.currentPlayer.skippedTurn = false
+    if (state.turn > 2) {
+        // Draw new card
+        setTimeout(() => {
+            state.currentPlayer.hand.push(drawCard())
+            state.canPlay = true
+        }, 800)
+    } else {
+        state.canPlay = true
+    }
+}
+
+function endGame() {
+    state.activeOverlay = 'game-over'
 }
