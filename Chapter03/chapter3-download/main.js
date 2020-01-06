@@ -6,8 +6,9 @@ new Vue({
         log(this.$data === state)
     },
     template: `<div id="#app">
-    {{ worldRatio }}
-</div>`,
+        <top-bar :turn="turn" :current-player-index="currentPlayerIndex" 
+            :players="players"/>
+    </div>`,
 })
 
 window.addEventListener('resize', () => {
