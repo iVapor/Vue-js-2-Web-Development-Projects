@@ -12,3 +12,38 @@ Vue.component('top-bar', {
         console.log(this.players, this.currentPlayerIndex, this.turn)
     },
 })
+
+Vue.component('card', {
+    template: `<div class="card" :class="'type-' + def.type" @click="play">
+        <div class="title">{{ def.title }}</div>
+        <img class="separator" src="svg/card-separator.svg" />
+        <div class="description"><div v-html="def.description"></div></div>
+        <div class="note" v-if="def.note">
+            <div v-html="def.note"></div>
+        </div>
+    </div>`,
+    props: ['def'],
+    methods: {
+        play() {
+            this.$emit('play')
+        },
+    },
+})
+
+Vue.component('hand', {
+    template: `<div class="hand">
+        <div class="wrapper">
+        
+        </div>
+    </div>`,
+    props: ['cards'],
+    methods: {
+        handlePlay (card) {
+            this.$emit('card-play', card)
+        },
+
+        handleLeaveTransitionEnd () {
+            this.$emit('card-leave-end')
+        },
+    },
+})
