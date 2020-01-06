@@ -9,7 +9,6 @@ Vue.component('top-bar', {
     </div>`,
     props: ['players', 'currentPlayerIndex', 'turn'],
     created() {
-        console.log(this.players, this.currentPlayerIndex, this.turn)
     },
 })
 
@@ -33,7 +32,7 @@ Vue.component('card', {
 Vue.component('hand', {
     template: `<div class="hand">
         <div class="wrapper">
-        
+            <card v-for="card of cards" :def="card.def" /> 
         </div>
     </div>`,
     props: ['cards'],

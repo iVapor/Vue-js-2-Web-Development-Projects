@@ -7,9 +7,11 @@ var currentPlayingCard = null
 
 // The consolidated state of our app
 var state = {
+    // UI
+    activeOverlay: null,
     // World
     worldRatio: getWorldRatio(),
-    // TODO Other things
+
     // Game
     turn: 1,
     players: [
@@ -35,5 +37,7 @@ var state = {
         },
 
     ],
+
     currentPlayerIndex: Math.round(Math.random()),
+    testHand: [],
 }
