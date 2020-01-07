@@ -52,6 +52,15 @@ new Vue({
     template: `<div id="#app">
         <top-bar :turn="turn" :current-player-index="currentPlayerIndex" 
             :players="players"/>
+            
+        <div class="world">
+            <castle v-for="(player, index) in players" :player="player" :index="index" />
+          <div class="land" />
+          <div class="clouds">
+            <cloud v-for="index in 10" :type="(index - 1) % 5 + 1" />
+          </div>
+        </div>
+    
         <transition  name="hand">   
             <hand v-if="!activeOverlay"  :cards="testHand"  @card-play="testPlayCard" /> 
         </transition> 
