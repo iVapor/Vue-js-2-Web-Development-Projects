@@ -39,14 +39,20 @@ new Vue({
                 // 定义对象
                 def: cards[randomId],
             }
+        },
+        testPlayCard(card) {
+            // 将卡牌从玩家手牌中移除即可
+            log('card', card)
+            const index = this.testHand.indexOf(card)
+            this.testHand.splice(index, 1)
         }
     },
 
     template: `<div id="#app">
         <top-bar :turn="turn" :current-player-index="currentPlayerIndex" 
             :players="players"/>
-        <transition  name="fade">   
-            <hand v-if="!activeOverlay"  :cards="testHand" /> 
+        <transition  name="hand">   
+            <hand v-if="!activeOverlay"  :cards="testHand"  @card-play="testPlayCard" /> 
         </transition> 
     </div>`,
 })
