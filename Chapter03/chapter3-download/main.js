@@ -9,13 +9,9 @@ new Vue({
             return cards.archers
         }
     },
-    created() {
-        this.testHand = this.createTestHand()
-        log('this.testHand', this.testHand)
-    },
     methods: {
         handlePlay() {
-            console.log('You played a card!')
+            playCard(card)
         },
         createTestHand() {
             const cards = []
@@ -41,12 +37,20 @@ new Vue({
                 def: cards[randomId],
             }
         },
+
+        handleCardLeaveEnd() {
+            applyCard()
+        },
         testPlayCard(card) {
             // 将卡牌从玩家手牌中移除即可
             log('card', card)
             const index = this.testHand.indexOf(card)
             this.testHand.splice(index, 1)
-        }
+        },
+
+        handleOverlayClose() {
+            overlayCloseHandlers[this.activeOverlay]()
+        },
     },
 
     template: `<div id="#app">
@@ -62,11 +66,13 @@ new Vue({
         </div>
     
         <transition  name="hand">   
-            <hand v-if="!activeOverlay"  :cards="testHand"  @card-play="testPlayCard" /> 
+            <hand v-if="!activeOverlay"  :cards="currentHand" 
+                @card-leave-end="handleCardLeaveEnd" 
+                @card-play="handlePlayCard" /> 
         </transition> 
         
         <transition name="zoom">
-            <overlay v-if="activeOverlay">    
+            <overlay v-if="activeOverlay" @close="handleOverlayClose">    
                 <component :is="'overlay-content-' + activeOverlay" :player="currentPlayer" 
                     :opponent="currentOpponent" :players="players" />
             </overlay>
@@ -74,6 +80,108 @@ new Vue({
     </div>`,
 })
 
+
+var overlayCloseHandlers = {
+    'player-turn'() {
+        if (state.turn > 1) {
+            state.activeOverlay = 'last-play'
+        } else {
+            newTurn()
+        }
+    },
+
+    'last-play'() {
+        newTurn()
+    },
+
+    'game-over'() {
+        document.location.reload()
+    },
+}
+
 window.addEventListener('resize', () => {
     state.worldRatio = getWorldRatio()
 })
+
+// Gameplay
+
+state.activeOverlay = 'player-turn'
+
+function beginGame() {
+    state.players.forEach(drawInitialHand)
+}
+
+
+function playCard(card) {
+    if (state.canPlay) {
+        state.canPlay = false
+        currentPlayingCard = card
+
+        // Remove the card from player hand
+        const index = state.currentPlayer.hand.indexOf(card)
+        state.currentPlayer.hand.splice(index, 1)
+
+        // Add the card to the discard pile
+        addCardToPile(state.discardPile, card.id)
+    }
+}
+
+
+function applyCard() {
+    const card = currentPlayingCard
+
+    applyCardEffect(card)
+
+    // Wait a bit for the player to see what's going on
+    setTimeout(() => {
+        // Check if the players are dead
+        state.players.forEach(checkPlayerLost)
+
+        if (isOnePlayerDead()) {
+            endGame()
+        } else {
+            nextTurn()
+        }
+    }, 700)
+}
+
+
+function nextTurn() {
+    state.turn++
+    state.currentPlayerIndex = state.currentOpponentId
+    state.activeOverlay = 'player-turn'
+}
+
+function newTurn() {
+    state.activeOverlay = null
+    if (state.currentPlayer.skipTurn) {
+        skipTurn()
+    } else {
+        startTurn()
+    }
+}
+
+
+function skipTurn() {
+    state.currentPlayer.skippedTurn = true
+    state.currentPlayer.skipTurn = false
+    nextTurn()
+}
+
+function startTurn() {
+    state.currentPlayer.skippedTurn = false
+    if (state.turn > 2) {
+        // Draw new card
+        setTimeout(() => {
+            state.currentPlayer.hand.push(drawCard())
+            state.canPlay = true
+        }, 800)
+    } else {
+        state.canPlay = true
+    }
+}
+
+
+function endGame() {
+    state.activeOverlay = 'game-over'
+}
