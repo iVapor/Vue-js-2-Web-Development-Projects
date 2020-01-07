@@ -22,6 +22,9 @@ Vue.component('card', {
         </div>
     </div>`,
     props: ['def'],
+    mounted() {
+        log('in card')
+    },
     methods: {
         play() {
             console.log('in card')
@@ -33,9 +36,10 @@ Vue.component('card', {
 Vue.component('hand', {
     template: `<div class="hand">
         <div class="wrapper">
-            <transition-group name="card" class="cards">
-                <card v-for="card of cards" :def="card.def" @play="handlePlay(card)" :key="card.id"/> 
-            </transition-group>
+<!--            <transition-group name="card" class="cards">-->
+<!--                <card v-for="card of cards" :def="card.def" @play="handlePlay(card)" :key="card.uid"/> -->
+<!--            </transition-group>-->
+            <card v-for="card of cards" :def="card.def" @play="handlePlay(card)" :key="card.uid"/> 
         </div>
     </div>`,
     props: ['cards'],
@@ -47,6 +51,68 @@ Vue.component('hand', {
 
         handleLeaveTransitionEnd () {
             this.$emit('card-leave-end')
+        },
+    },
+})
+
+Vue.component('overlay', {
+    template: `<div class="overlay" @click="handleClick">
+        <div class="content">
+            <slot></slot>
+        </div>
+    </div>`,
+    methods: {
+        handleClick () {
+            this.$emit('close')
+        },
+    },
+})
+
+
+Vue.component('overlay-content-player-turn', {
+    template: `<div>
+        <div class="big" v-if="player.skipTurn">{{ player.name }},<br>your turn is skipped!</div>
+        <div class="big" v-else>{{ player.name }},<br>your turn has come!</div>
+        <div>Tap to continue</div>
+    </div>`,
+    props: ['player'],
+})
+
+
+Vue.component('overlay-content-last-play', {
+    template: `<div>
+    <div v-if="opponent.skippedTurn">{{ opponent.name }} turn was skipped!</div>
+    <template v-else>
+      <div>{{ opponent.name }} just played:</div>
+      <card :def="lastPlayedCard" />
+    </template>
+  </div>`,
+    props: ['opponent'],
+    computed: {
+        lastPlayedCard () {
+            return getLastPlayedCard(this.opponent)
+        },
+    },
+})
+
+
+Vue.component('overlay-content-game-over', {
+    template: `<div>
+    <div class="big">Game Over</div>
+    <player-result v-for="player in players" :player="player" />
+  </div>`,
+    props: ['players'],
+})
+
+Vue.component('player-result', {
+    template: `<div class="player-result" :class="result">
+    <span class="name">{{ player.name }}</span> is
+    <span class="result">{{ result }}</span>
+  </div>`,
+    props: ['player'],
+    computed: {
+        result () {
+            return this.player.dead ? 'defeated' : 'victorious'
         },
     },
 })

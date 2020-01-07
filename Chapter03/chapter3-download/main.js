@@ -11,6 +11,7 @@ new Vue({
     },
     created() {
         this.testHand = this.createTestHand()
+        log('this.testHand', this.testHand)
     },
     methods: {
         handlePlay() {
@@ -54,6 +55,13 @@ new Vue({
         <transition  name="hand">   
             <hand v-if="!activeOverlay"  :cards="testHand"  @card-play="testPlayCard" /> 
         </transition> 
+        
+        <transition name="zoom">
+            <overlay v-if="activeOverlay">    
+                <component :is="'overlay-content-' + activeOverlay" :player="currentPlayer" 
+                    :opponent="currentOpponent" :players="players" />
+            </overlay>
+        </transition>
     </div>`,
 })
 
