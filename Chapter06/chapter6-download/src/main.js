@@ -11,7 +11,7 @@ import * as filters from './filters'
 // Filters
 for (const key in filters) {
   Vue.filter(key, filters[key])
-}
+}h
 
 Vue.use(VueFetch, {
   baseUrl: 'http://localhost:3000/',
